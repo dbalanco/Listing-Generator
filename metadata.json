@@ -1,0 +1,8 @@
+{
+  "name": "Remix Omni Property Listing Video Generator",
+  "description": "Turns the listing photos a property already has into a moving walk-through. Each photo becomes the exact first frame of a 10-second clip, so the room stays the room — no furniture, light or fixture is invented.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

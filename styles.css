@@ -1,0 +1,430 @@
+/* Palette sampled pixel-by-pixel off the client's concept card (ref/design_spec.md)
+   and already proven on two films. Do not substitute a preset's colours. */
+:root {
+  --header-bg: #f3f0ee;
+  --header-divider: #e2dfdc;
+  --workspace-bg: #e8e4e0;
+  --bottombar-bg: #f1f0ec;
+  --card-fill: #f2f1ef;
+  --tab-track: #d4cfcc;
+  --hairline: #ccc9c4;
+  --icon-chip: #e1deda;
+  --green-primary: #255039;
+  --green-check: #2a553e;
+  --toggle-on: #8d8c80;
+  --toggle-off: #c4bfbd;
+  --sage-ring: #c2ccc3;
+  --gold: #b4864c;
+  --fidelity-fill: #e9e1d9;
+  --fidelity-border: #d7c3a8;
+  --callout-fill: #f3e8db;
+  --text-primary: #2e2d2b;
+  --text-muted: #605d59; /* darkened from the card's #8A8580 to clear 4.5:1 on light panels */
+  --text-body: #5a5851;
+  --stage: #211f1b;
+  --film-black: #141310;
+  --danger: #8c3a2b;
+  --sans: "Helvetica Neue", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+body {
+  background: var(--stage);
+  font-family: var(--sans);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+
+/* ---------------------------------------------------------------- shell */
+
+.app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--workspace-bg);
+  max-width: 1800px;
+  margin: 0 auto;
+  box-shadow: 0 0 90px rgba(0, 0, 0, 0.45);
+}
+
+.hdr {
+  flex: 0 0 auto;
+  height: 62px;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--header-divider);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 14px;
+}
+
+.hdr h1 {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.185em;
+  text-transform: uppercase;
+  color: #33322f;
+  margin: 0 auto;
+  white-space: nowrap;
+}
+
+.hdr .icon { width: 22px; height: 22px; color: #4c4c4a; flex: 0 0 auto; }
+
+.mode-pill {
+  display: flex;
+  background: var(--tab-track);
+  border-radius: 999px;
+  padding: 2px;
+  flex: 0 0 auto;
+}
+.mode-pill button {
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #7d7873;
+  white-space: nowrap;
+}
+.mode-pill button.on {
+  background: #f3f1ef;
+  color: #4a4946;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.07);
+}
+
+/* ---------------------------------------------------------------- body */
+
+.work {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: 232px minmax(0, 1fr) 268px;
+  gap: 20px;
+  padding: 20px;
+  min-height: 0;
+}
+
+.collabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.col { display: flex; flex-direction: column; min-height: 0; }
+.col-scroll { overflow-y: auto; flex: 1 1 auto; min-height: 0; }
+
+/* ------------------------------------------------------------ room rail */
+
+.rail { display: flex; flex-direction: column; gap: 10px; }
+
+.room {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1280 / 720;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #cfcac4 center / cover;
+  border: 1px solid var(--hairline);
+  text-align: left;
+  display: block;
+  padding: 0;
+}
+.room.sel { border-color: var(--sage-ring); box-shadow: 0 0 0 2px var(--sage-ring); }
+.room img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.room .scrim {
+  position: absolute; inset: 0;
+  background: linear-gradient(transparent 55%, rgba(0, 0, 0, 0.72) 100%);
+}
+.room .lbl {
+  position: absolute; left: 8px; bottom: 6px; right: 30px;
+  font-size: 11px; font-weight: 600; color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.room .badge {
+  position: absolute; right: 7px; top: 7px;
+  width: 18px; height: 18px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--green-check); color: #fff;
+}
+.room .badge.pending { background: rgba(46, 45, 43, 0.62); }
+.room .badge.failed { background: var(--danger); }
+.room .badge svg { width: 11px; height: 11px; }
+.room .movetag {
+  position: absolute; left: 8px; top: 7px;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: #fff;
+  background: rgba(20, 19, 16, 0.6);
+  padding: 2px 6px; border-radius: 3px;
+}
+.room .kill {
+  position: absolute; right: 7px; bottom: 6px;
+  width: 18px; height: 18px; border-radius: 4px;
+  background: rgba(20, 19, 16, 0.55); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; line-height: 1; opacity: 0; transition: opacity 0.12s;
+}
+.room:hover .kill { opacity: 1; }
+
+.dropzone {
+  border: 1px dashed var(--hairline);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.35);
+  color: var(--text-muted);
+  font-size: 11.5px;
+  line-height: 1.5;
+  padding: 16px 12px;
+  text-align: center;
+  width: 100%;
+  transition: background 0.15s, border-color 0.15s;
+}
+.dropzone:hover, .dropzone.hot { border-color: var(--green-primary); background: rgba(255, 255, 255, 0.7); }
+.dropzone b { display: block; color: var(--text-primary); font-weight: 600; margin-bottom: 3px; }
+
+.rail-disclaimer {
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 2px;
+}
+.rail-disclaimer a {
+  color: var(--green-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.rail-disclaimer a:hover {
+  color: #163625;
+}
+
+/* ---------------------------------------------------------------- stage */
+
+.stagewrap { display: flex; flex-direction: column; min-height: 0; }
+
+/* Fit the 16:9 canvas into whatever space is left, as large as it will go.
+   Without the box the canvas takes its height from the column width alone and
+   leaves a dead band underneath on a tall window. */
+.canvasbox {
+  flex: 0 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.canvas {
+  position: relative;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  /* Viewport units, not a percentage: inside a shrink-to-fit box a percentage
+     max-height resolves against the box the canvas is defining, which is
+     circular and gets dropped. The subtrahend is header + labels + meta + bar. */
+  max-height: calc(100vh - 252px);
+  aspect-ratio: 1280 / 720;
+  background: #1a1916;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+}
+.canvas video, .canvas img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.canvas .empty {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; color: #8f8a83; font-size: 13px; text-align: center; padding: 24px;
+}
+
+.canvas .corner {
+  position: absolute; bottom: 9px; font-size: 9.5px; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255, 255, 255, 0.82);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+.canvas .corner.l { left: 11px; }
+.canvas .corner.r { right: 11px; }
+
+/* split view: generated frame against the untouched source */
+.split { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; }
+.split > div { position: relative; overflow: hidden; }
+.split .divider {
+  position: absolute; left: 50%; top: 0; bottom: 0; width: 1px;
+  background: rgba(255, 255, 255, 0.55); z-index: 2;
+}
+.split .tag {
+  position: absolute; top: 9px; font-size: 9.5px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase; color: #fff;
+  background: rgba(20, 19, 16, 0.62); padding: 3px 7px; border-radius: 3px; z-index: 3;
+}
+
+.busy {
+  position: absolute; inset: 0; background: rgba(20, 19, 16, 0.72);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 14px; color: #eae6df; z-index: 4; padding: 24px; text-align: center;
+}
+.busy .big { font-size: 15px; font-weight: 600; letter-spacing: 0.01em; }
+.busy .sub { font-size: 12px; color: #a9a49b; max-width: 380px; line-height: 1.5; }
+.spinner {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  border-top-color: #eae6df;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.splitnote {
+  font-size: 11px; line-height: 1.55; color: var(--text-body);
+  margin-top: 10px; max-width: 720px;
+}
+
+.stagemeta {
+  display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+  margin-top: 10px; font-size: 11px; color: var(--text-body); min-height: 18px;
+}
+.stagemeta .k { color: var(--text-muted); }
+.stagemeta .err { color: var(--danger); font-weight: 600; }
+
+/* --------------------------------------------------------- right column */
+
+.panel {
+  background: var(--card-fill);
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.moverow {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 10px; border-radius: 5px; background: var(--card-fill);
+  border: 1px solid transparent; margin-bottom: 7px; width: 100%;
+}
+.moverow.on { border-color: var(--hairline); }
+.moverow .name { font-size: 13px; font-weight: 500; }
+.moverow.off .name { color: #9d9892; }
+
+.toggle {
+  width: 34px; height: 19px; border-radius: 999px; background: var(--toggle-off);
+  position: relative; flex: 0 0 auto; transition: background 0.16s;
+}
+.toggle.on { background: var(--green-primary); }
+.toggle .knob {
+  position: absolute; top: 2px; left: 2px; width: 15px; height: 15px;
+  border-radius: 50%; background: #fff; transition: transform 0.16s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+.toggle.on .knob { transform: translateX(15px); }
+
+.dirrow { display: flex; gap: 6px; margin: -2px 0 9px 10px; }
+.dirrow button {
+  flex: 1; font-size: 10.5px; padding: 5px 4px; border-radius: 4px;
+  border: 1px solid var(--hairline); color: var(--text-body); background: #fff;
+}
+.dirrow button.on { background: var(--green-primary); color: #fff; border-color: var(--green-primary); }
+
+.fidelity {
+  background: var(--fidelity-fill);
+  border: 1px solid var(--fidelity-border);
+  border-radius: 6px; padding: 11px;
+}
+.fidelity.off { background: #eeebe7; border-color: var(--hairline); }
+.fidelity .top { display: flex; align-items: center; gap: 7px; margin-bottom: 6px; }
+.fidelity .top .name { font-size: 12.5px; font-weight: 600; color: #6b512f; }
+.fidelity.off .top .name { color: #7c7871; }
+.fidelity p { font-size: 10.5px; line-height: 1.55; color: #816037; }
+.fidelity.off p { color: #7c7871; }
+.fidelity .lockicon { width: 13px; height: 13px; color: var(--gold); }
+.fidelity.off .lockicon { color: #9b968f; }
+.fidelity .reveal {
+  margin-top: 8px; font-size: 10px; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: #816037; text-decoration: underline;
+}
+.fidelity.off .reveal { color: #7c7871; }
+
+.hint { font-size: 10.5px; line-height: 1.55; color: var(--text-muted); margin-top: 8px; }
+
+/* ------------------------------------------------------------ bottom bar */
+
+.bar {
+  flex: 0 0 auto;
+  background: var(--bottombar-bg);
+  border-top: 1px solid var(--header-divider);
+  padding: 12px 20px;
+  display: flex; align-items: center; gap: 14px;
+}
+
+.btn {
+  border-radius: 5px; padding: 9px 16px; font-size: 12.5px; font-weight: 600;
+  letter-spacing: 0.02em; border: 1px solid var(--hairline); background: #fff;
+  color: var(--text-body);
+}
+.btn:disabled { opacity: 0.45; }
+.btn.primary {
+  background: var(--green-primary); color: #fff; border-color: var(--green-primary);
+  letter-spacing: 0.11em; text-transform: uppercase; padding: 10px 26px;
+}
+.btn.primary:disabled { background: #8d9a91; border-color: #8d9a91; color: #eef1ee; }
+.btn.ghost { background: transparent; }
+
+.bar .spacer { flex: 1 1 auto; }
+.bar .meta { font-size: 11.5px; color: var(--text-body); }
+.bar .meta b { font-weight: 600; color: var(--text-primary); }
+
+/* ---------------------------------------------------------------- modal */
+
+.scrim-full {
+  position: fixed; inset: 0; background: rgba(20, 19, 16, 0.66);
+  display: flex; align-items: center; justify-content: center; padding: 24px; z-index: 50;
+}
+.modal {
+  background: var(--header-bg); border-radius: 8px; padding: 22px;
+  max-width: 560px; width: 100%; max-height: 82vh; overflow-y: auto;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
+}
+.modal h2 { font-size: 15px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 12px; }
+.modal p { font-size: 12.5px; line-height: 1.65; color: var(--text-body); margin-bottom: 12px; }
+.modal a { color: var(--green-primary); text-decoration: underline; text-underline-offset: 2px; }
+.modal a:hover { color: #163625; }
+.modal pre {
+  font-size: 11px; line-height: 1.6; white-space: pre-wrap; background: #fff;
+  border: 1px solid var(--hairline); border-radius: 5px; padding: 12px; color: var(--text-body);
+  max-height: 320px; overflow-y: auto;
+}
+.modal input[type="password"], .modal input[type="text"] {
+  width: 100%; font: inherit; font-size: 13px; padding: 9px 11px;
+  border: 1px solid var(--hairline); border-radius: 5px; background: #fff; margin-bottom: 10px;
+}
+.modal .row { display: flex; gap: 9px; align-items: center; margin-top: 6px; }
+.modal .status { font-size: 11.5px; margin-top: 9px; }
+.modal .status.bad { color: var(--danger); }
+.modal .status.good { color: var(--green-primary); }
+
+/* ------------------------------------------------------------ responsive */
+
+@media (max-width: 1180px) {
+  .work { grid-template-columns: 190px minmax(0, 1fr) 234px; gap: 14px; padding: 14px; }
+}
+
+@media (max-width: 900px) {
+  .work {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    overflow-y: auto;
+  }
+  .rail { flex-direction: row; overflow-x: auto; padding-bottom: 4px; }
+  .rail > * { flex: 0 0 150px; }
+  .col-scroll { overflow: visible; }
+  .hdr h1 { font-size: 11px; letter-spacing: 0.12em; }
+}
